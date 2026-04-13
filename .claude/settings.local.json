@@ -3,7 +3,12 @@
     "allow": [
       "Bash(python main.py 3017620429484 7622210449283 5000159484695 2024-10-15T00:00:00Z)",
       "Bash(python main.py 3017620429484 7622210449283 5000159484695)",
-      "Bash(python -c \"import pandas as pd; print\\('=== RANKING ==='\\); print\\(pd.read_csv\\('data/gold/products_ranking.csv'\\)[['rank','name','nutriscore','energy_kcal','fat','sugars']].to_string\\(index=False\\)\\); print\\(\\); print\\('=== SUMMARY ==='\\); print\\(pd.read_csv\\('data/gold/nutrition_summary.csv'\\).to_string\\(index=False\\)\\)\")"
+      "Bash(python -c \"import pandas as pd; print\\('=== RANKING ==='\\); print\\(pd.read_csv\\('data/gold/products_ranking.csv'\\)[['rank','name','nutriscore','energy_kcal','fat','sugars']].to_string\\(index=False\\)\\); print\\(\\); print\\('=== SUMMARY ==='\\); print\\(pd.read_csv\\('data/gold/nutrition_summary.csv'\\).to_string\\(index=False\\)\\)\")",
+      "Bash(pip show:*)",
+      "Bash(python -c \"import pandas as pd; print\\(pd.read_csv\\('data/silver/5449000000996.csv'\\).to_string\\(\\)\\)\")",
+      "Bash(python -c \"import pandas as pd; print\\(pd.read_csv\\('data/gold/products_ranking.csv'\\)[['rank','name','nutriscore','energy_kcal']].to_string\\(index=False\\)\\)\")",
+      "Bash(python -c \"import pandas as pd; print\\(pd.read_csv\\('data/gold/nutrition_summary.csv'\\).to_string\\(\\)\\)\")",
+      "Bash(python -c ':*)"
     ]
   }
 }

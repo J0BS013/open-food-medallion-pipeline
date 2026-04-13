@@ -33,10 +33,25 @@ def run_pipeline(barcodes: list[str]) -> None:
         return
 
     log.info("Building Gold layer from %d product(s)...", len(successful))
-    df = gold.load_all_silver()
-    ranking = gold.build_ranking(df)
-    summary = gold.build_summary(df)
-    gold.save_gold(ranking, summary)
+    try:
+        df = gold.load_all_silver()
+    except FileNotFoundError as e:
+        log.error("Gold layer aborted: %s", e)
+        return
+
+    try:
+        ranking = gold.build_ranking(df)
+        gold.save_ranking(ranking)
+        log.info("  products_ranking.csv saved.")
+    except Exception as e:
+        log.error("  Failed to build ranking: %s", e)
+
+    try:
+        summary = gold.build_summary(df)
+        gold.save_summary(summary)
+        log.info("  nutrition_summary.csv saved.")
+    except Exception as e:
+        log.error("  Failed to build summary: %s", e)
 
     log.info("Pipeline complete. Results saved to data/gold/")
 

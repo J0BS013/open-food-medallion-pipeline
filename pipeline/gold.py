@@ -52,10 +52,15 @@ def build_summary(df: pd.DataFrame) -> pd.DataFrame:
     }])
 
 
-def save_gold(ranking: pd.DataFrame, summary: pd.DataFrame) -> tuple[Path, Path]:
+def save_ranking(ranking: pd.DataFrame) -> Path:
     GOLD_DIR.mkdir(parents=True, exist_ok=True)
-    ranking_path = GOLD_DIR / "products_ranking.csv"
-    summary_path = GOLD_DIR / "nutrition_summary.csv"
-    ranking.to_csv(ranking_path, index=False)
-    summary.to_csv(summary_path, index=False)
-    return ranking_path, summary_path
+    path = GOLD_DIR / "products_ranking.csv"
+    ranking.to_csv(path, index=False)
+    return path
+
+
+def save_summary(summary: pd.DataFrame) -> Path:
+    GOLD_DIR.mkdir(parents=True, exist_ok=True)
+    path = GOLD_DIR / "nutrition_summary.csv"
+    summary.to_csv(path, index=False)
+    return path
