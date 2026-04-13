@@ -34,6 +34,7 @@ Open Food Facts API
 - Python 3.9+
 - [Pandas](https://pandas.pydata.org/)
 - [Requests](https://docs.python-requests.org/)
+- [Pytest](https://docs.pytest.org/)
 - Open Food Facts REST API
 
 ---
@@ -46,6 +47,10 @@ open-food-medallion-pipeline/
 │   ├── bronze.py      # API ingestion → raw JSON
 │   ├── silver.py      # Cleaning & normalization → structured CSV
 │   └── gold.py        # Aggregation & ranking → insight CSVs
+├── tests/
+│   ├── test_bronze.py
+│   ├── test_silver.py
+│   └── test_gold.py
 ├── data/
 │   ├── bronze/        # One .json file per barcode
 │   ├── silver/        # One .csv file per barcode
@@ -84,6 +89,33 @@ data/
 
 ---
 
+## Running Tests
+
+```bash
+pytest tests/ -v
+```
+
+```
+tests/test_bronze.py::test_fetch_product_success              PASSED
+tests/test_bronze.py::test_fetch_product_not_found            PASSED
+tests/test_bronze.py::test_fetch_product_http_error           PASSED
+tests/test_gold.py::test_build_ranking_order                  PASSED
+tests/test_gold.py::test_build_ranking_adds_rank_column       PASSED
+tests/test_gold.py::test_build_ranking_unknown_nutriscore_goes_last PASSED
+tests/test_gold.py::test_build_summary_total_products         PASSED
+tests/test_gold.py::test_build_summary_averages               PASSED
+tests/test_gold.py::test_build_summary_best_and_worst         PASSED
+tests/test_gold.py::test_build_summary_no_scored_products     PASSED
+tests/test_silver.py::test_clean_product_full_data            PASSED
+tests/test_silver.py::test_clean_product_missing_fields       PASSED
+tests/test_silver.py::test_clean_product_nutriscore_uppercase PASSED
+tests/test_silver.py::test_clean_product_name_title_case      PASSED
+
+14 passed in 0.69s
+```
+
+---
+
 ## Gold Layer Output Example
 
 **`products_ranking.csv`** — products ranked by nutriscore, then by energy:
@@ -113,6 +145,8 @@ If a barcode is invalid or the API is unavailable, the pipeline logs the error a
 23:01:17 [INFO] Processing barcode 5000159484695...
 23:01:18 [INFO]   'Twix' processed successfully.
 23:01:18 [INFO] Building Gold layer from 2 product(s)...
+23:01:18 [INFO]   products_ranking.csv saved.
+23:01:18 [INFO]   nutrition_summary.csv saved.
 23:01:18 [INFO] Pipeline complete. Results saved to data/gold/
 ```
 

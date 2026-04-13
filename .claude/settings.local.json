@@ -8,7 +8,9 @@
       "Bash(python -c \"import pandas as pd; print\\(pd.read_csv\\('data/silver/5449000000996.csv'\\).to_string\\(\\)\\)\")",
       "Bash(python -c \"import pandas as pd; print\\(pd.read_csv\\('data/gold/products_ranking.csv'\\)[['rank','name','nutriscore','energy_kcal']].to_string\\(index=False\\)\\)\")",
       "Bash(python -c \"import pandas as pd; print\\(pd.read_csv\\('data/gold/nutrition_summary.csv'\\).to_string\\(\\)\\)\")",
-      "Bash(python -c ':*)"
+      "Bash(python -c ':*)",
+      "Bash(pip install:*)",
+      "Bash(pytest tests/ -v)"
     ]
   }
 }
