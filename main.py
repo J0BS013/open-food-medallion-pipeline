@@ -1,65 +1,55 @@
-import os
-import requests
-import pandas as pd
+import argparse
+import logging
 
-# PATHS
-os.makedirs("data/bronze", exist_ok=True)
-os.makedirs("data/silver", exist_ok=True)
-os.makedirs("data/gold", exist_ok=True)
+from pipeline import bronze, gold, silver
 
-# ---------------- BRONZE ----------------
-def fetch_product(barcode: str) -> dict:
-    url = f"https://world.openfoodfacts.org/api/v0/product/{barcode}.json"
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.json()
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+)
+log = logging.getLogger(__name__)
 
-# ---------------- SILVER ----------------
-def clean_product_data(raw_data: dict) -> dict:
-    product = raw_data.get("product", {})
-    return {
-        "name": product.get("product_name", "").strip().title(),
-        "brands": product.get("brands", "").lower(),
-        "categories": product.get("categories", "").split(","),
-        "nutriscore": product.get("nutriscore_grade", "").upper(),
-        "ingredients_text": product.get("ingredients_text", "").strip(),
-        "energy_kcal": product.get("nutriments", {}).get("energy-kcal_100g", None),
-        "fat": product.get("nutriments", {}).get("fat_100g", None),
-        "sugars": product.get("nutriments", {}).get("sugars_100g", None),
-    }
 
-# ---------------- GOLD ----------------
-def summarize_product(data: dict) -> dict:
-    return {
-        "name": data["name"],
-        "nutriscore": data["nutriscore"],
-        "energy_kcal": data["energy_kcal"],
-        "summary": f"{data['name']} tem {data['energy_kcal']} kcal por 100g e nutri-score {data['nutriscore']}."
-    }
+def run_pipeline(barcodes: list[str]) -> None:
+    successful = []
 
-# ---------------- SAVE  ----------------
-def save_to_csv(data: dict, path: str):
-    df = pd.DataFrame([data])  
-    df.to_csv(path, index=False)
+    for barcode in barcodes:
+        log.info("Processing barcode %s...", barcode)
+        try:
+            raw = bronze.fetch_product(barcode)
+            bronze.save_raw(raw, barcode)
 
-# ---------------- MAIN ----------------
+            cleaned = silver.clean_product(raw, barcode)
+            silver.save_cleaned(cleaned, barcode)
+            log.info("  '%s' processed successfully.", cleaned["name"])
+
+            successful.append(barcode)
+        except Exception as e:
+            log.error("  Failed to process barcode %s: %s", barcode, e)
+
+    if not successful:
+        log.error("No products were processed successfully. Aborting Gold layer.")
+        return
+
+    log.info("Building Gold layer from %d product(s)...", len(successful))
+    df = gold.load_all_silver()
+    ranking = gold.build_ranking(df)
+    summary = gold.build_summary(df)
+    gold.save_gold(ranking, summary)
+
+    log.info("Pipeline complete. Results saved to data/gold/")
+
+
 if __name__ == "__main__":
-    barcode = "3017620429484"  # Nutella
-    try:
-        # Bronze
-        raw = fetch_product(barcode)
-        save_to_csv(raw, "data/bronze/product_raw.csv")
-
-        # Silver
-        cleaned = clean_product_data(raw)
-        save_to_csv(cleaned, "data/silver/product_clean.csv")
-
-        # Gold
-        summary = summarize_product(cleaned)
-        save_to_csv(summary, "data/gold/product_summary.csv")
-
-        print("Pipeline executado com sucesso!")
-    except Exception as e:
-        print("Erro:", e)
-
-
+    parser = argparse.ArgumentParser(
+        description="Open Food Medallion Pipeline — Bronze → Silver → Gold"
+    )
+    parser.add_argument(
+        "barcodes",
+        nargs="+",
+        metavar="BARCODE",
+        help="One or more product barcodes to process (e.g. 3017620429484)",
+    )
+    args = parser.parse_args()
+    run_pipeline(args.barcodes)
